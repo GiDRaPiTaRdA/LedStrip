@@ -1,5 +1,4 @@
-#ifndef SOME_HEADER_H1
-#define SOME_HEADER_H1
+#pragma once
 #include <FastLED.h>
 #include "Palletes.h"
 
@@ -25,5 +24,3 @@ CRGBPalette16* palettes[] = {
     Palletes::CreatePallete(greenwpink, 2),
     Palletes::CreatePallete(greenYellow, 2),
     Palletes::CreatePallete(rain, 7)};
-
-#endif

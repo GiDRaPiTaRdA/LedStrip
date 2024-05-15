@@ -1,7 +1,10 @@
+#pragma once
+
 #include <Arduino.h>
 #include <FastLED.h>
 #include "Palletes.h"
 #include "Colors.h"
+#include "Event.h"
 
 // This example shows several ways to set up and use 'palettes' of colors
 // with FastLED.
@@ -22,7 +25,6 @@
 
 #define MAGICNUM 3
 
-
 // #define LED_PIN     2
 // #define BRIGHTNESS  64
 // #define LED_TYPE    WS2811
@@ -36,10 +38,12 @@ private:
     int speed = 1;
     uint8_t brightness = 90;
     uint8_t updatesPerSecond = 60;
-    CRGBPalette16 currentPalette = *Palletes::CreatePallete(red,1);
+    CRGBPalette16 currentPalette = *Palletes::CreatePallete(red, 1);
     TBlendType currentBlending = LINEARBLEND;
     CRGB *leds;
-    
+
+  
+
     void FillLEDsFromPaletteColors(uint8_t colorIndex)
     {
         for (int i = 0; i < ledsCount; ++i)
@@ -53,13 +57,18 @@ public:
     static const uint8_t brMax = 255;
     static const uint8_t brMin = 0;
 
+    Event brightnessChanged; // +
+    Event palleteChanged; //+-
+    Event blendingChanged; //+
+    Event speedChanged; //+
+
     LedStrip(int ledsCount)
     {
         LedStrip::ledsCount = ledsCount;
     }
 
     // // Template function to mimic FastLED.addLeds
-    template <template<uint8_t DATA_PIN, EOrder RGB_ORDER> class CHIPSET, uint8_t DATA_PIN, EOrder RGB_ORDER>
+    template <template <uint8_t DATA_PIN, EOrder RGB_ORDER> class CHIPSET, uint8_t DATA_PIN, EOrder RGB_ORDER>
     void Setup()
     {
         leds = new CRGB[ledsCount];
@@ -68,20 +77,24 @@ public:
         FastLED.setBrightness(brightness);
     }
 
+    void SetBlending(TBlendType blending)
+    {
+        currentBlending = blending;
 
-    void SetBlending(TBlendType blending){
-          currentBlending = blending;
+        blendingChanged.RaiseEvent();
     }
 
-    TBlendType GetBlending(){
+    TBlendType GetBlending()
+    {
         return currentBlending;
     }
 
-    void ChangeBrightness(int8_t deltaValue){
-        SetBrightness(brightness+deltaValue);
+    void ChangeBrightness(int16_t deltaValue)
+    {
+        SetBrightness((int16_t)brightness + deltaValue);
     }
 
-    void SetBrightness(int8_t value)
+    void SetBrightness(int16_t value)
     {
         if (value < brMin)
             brightness = brMin;
@@ -94,7 +107,9 @@ public:
             brightness = value;
         }
 
-         FastLED.setBrightness(brightness);
+        FastLED.setBrightness(brightness);
+
+        brightnessChanged.RaiseEvent();
     }
 
     uint8_t GetBrightness()
@@ -112,28 +127,37 @@ public:
         currentPalette = *Palletes::CreatePallete(color);
     }
 
-    void SetPalette(CRGBPalette16* pallete)
+    void SetPalette(CRGBPalette16 *pallete)
     {
         currentPalette = *pallete;
+
+        palleteChanged.RaiseEvent();
     }
 
-    uint16_t GetSpeed(){
+    uint16_t GetSpeed()
+    {
         return speed;
     }
 
-    void SetSpeed(uint16_t speed){
-        LedStrip::speed=speed;
+    void SetSpeed(uint16_t speed)
+    {
+        LedStrip::speed = speed;
+
+        speedChanged.RaiseEvent();
     }
 
-    void ChangeSpeed(int deltaValue){
-         SetSpeed(speed+deltaValue);
+    void ChangeSpeed(int deltaValue)
+    {
+        SetSpeed(speed + deltaValue);
     }
 
-    uint8_t GetUpdatesPerSecond(){
+    uint8_t GetUpdatesPerSecond()
+    {
         return updatesPerSecond;
     }
 
-     void SetUpdatesPerSecond(uint8_t updatesPerSecond){
+    void SetUpdatesPerSecond(uint8_t updatesPerSecond)
+    {
         LedStrip::updatesPerSecond = updatesPerSecond;
     }
 
